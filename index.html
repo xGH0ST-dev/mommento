@@ -24,6 +24,9 @@
             --glass-strong: rgba(255, 255, 255, 0.1);
             --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.12);
             --shadow-strong: 0 20px 60px rgba(0, 0, 0, 0.2);
+            --particle-color: rgba(102, 126, 234, 0.4);
+            --line-color: rgba(140, 152, 214, 1);
+
         }
 
         /* Basic Setup */
@@ -115,6 +118,21 @@
             display: flex;
             align-items: center;
             gap: 12px;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        .control-btn:hover {
+            background: var(--glass-strong);
+            color: var(--text-primary);
         }
         
         #profile-avatar {
@@ -408,7 +426,55 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
+        /* Calendar View */
+        .calendar-section {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 28px;
+            margin-bottom: 32px;
+            box-shadow: var(--shadow-soft);
+        }
 
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        #month-year {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+        }
+
+        .calendar-day, .weekday {
+            text-align: center;
+            font-size: 12px;
+            aspect-ratio: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+        }
+
+        .weekday {
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .calendar-day.checked-in {
+            background: var(--gradient-primary);
+            color: white;
+            font-weight: 700;
+        }
         .themes-section {
             background: var(--glass);
             backdrop-filter: blur(20px);
@@ -477,7 +543,7 @@
         .theme-aurora { background: linear-gradient(135deg, #00ff87 0%, #60efff 100%); }
 
         /* Notification & Modals */
-        .notification, .reset-modal-content {
+        .notification, .reset-modal-content, .shop-modal-content {
             background: var(--glass-strong);
             backdrop-filter: blur(30px);
             border: 1px solid var(--border);
@@ -485,7 +551,7 @@
             padding: 32px 28px;
             text-align: center;
             box-shadow: var(--shadow-strong);
-            max-width: 320px;
+            max-width: 380px;
             width: 90%;
         }
 
@@ -572,7 +638,7 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
-        .reset-modal {
+        .reset-modal, .shop-modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.8);
@@ -586,17 +652,17 @@
             transition: all 0.3s ease;
         }
 
-        .reset-modal.show {
+        .reset-modal.show, .shop-modal.show {
             opacity: 1;
             visibility: visible;
         }
 
-        .reset-modal-content {
+        .reset-modal-content, .shop-modal-content {
             transform: scale(0.9);
             transition: transform 0.3s ease;
         }
 
-        .reset-modal.show .reset-modal-content {
+        .reset-modal.show .reset-modal-content, .shop-modal.show .shop-modal-content {
             transform: scale(1);
         }
         
@@ -606,7 +672,91 @@
             margin-bottom: 16px;
             color: #EF4444;
         }
+        /* Shop Modal Styles */
+        .shop-modal-content {
+            padding: 0;
+            background: var(--secondary);
+        }
 
+        .shop-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .shop-header .modal-title {
+            margin-bottom: 8px;
+        }
+
+        .coin-balance {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--text-secondary);
+        }
+
+        .shop-tabs {
+            display: flex;
+            justify-content: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .shop-tab {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+        }
+
+        .shop-tab.active {
+            color: var(--text-primary);
+            border-bottom-color: var(--text-primary);
+        }
+
+        .shop-items {
+            padding: 24px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .shop-item {
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .item-preview {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border: 2px solid var(--border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.3s;
+        }
+
+        .shop-item:hover .item-preview {
+            transform: scale(1.05);
+        }
+
+        .item-name {
+            font-size: 12px;
+        }
+
+        .item-cost {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+        }
         .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 12px; }
         .modal-text { color: var(--text-secondary); margin-bottom: 24px; line-height: 1.5; }
         .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -624,7 +774,7 @@
     
     <div id="auth-overlay">
         <div id="auth-modal">
-            <h2 class="auth-title">Welcome to Momentumm</h2>
+            <h2 class="auth-title">Welcome to Zenith Streak</h2>
             <p class="auth-tagline">Build lasting habits, one day at a time. Sign in to start your journey.</p>
              <button id="google-signin">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#4285F4" d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.9 8.2,4.73 12.19,4.73C14.04,4.73 15.3,5.5 15.9,6.03L18.04,3.91C16.32,2.43 14.04,1.7 12.19,1.7C6.92,1.7 2.73,6.1 2.73,12C2.73,17.9 6.92,22.3 12.19,22.3C17.6,22.3 21.5,18.33 21.5,12.33C21.5,11.76 21.43,11.43 21.35,11.1Z"/></svg>
@@ -637,9 +787,12 @@
         <header class="header">
             <div class="logo">
                 <svg class="logo-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M25 83.3333C25 83.3333 33.3333 75 50 75C66.6667 75 75 83.3333 75 83.3333" stroke="url(#paint0_linear_logo)" stroke-width="10" stroke-linecap="round"/><path d="M25 58.3333C25 58.3333 33.3333 50 50 50C66.6667 50 75 58.3333 75 58.3333" stroke="url(#paint1_linear_logo)" stroke-width="10" stroke-linecap="round"/><path d="M25 33.3333C25 33.3333 33.3333 25 50 25C66.6667 25 75 33.3333 75 33.3333" stroke="url(#paint2_linear_logo)" stroke-width="10" stroke-linecap="round"/><defs><linearGradient id="paint0_linear_logo" x1="25" y1="79.1667" x2="75" y2="79.1667" gradientUnits="userSpaceOnUse"><stop stop-color="#667EEA"/><stop offset="1" stop-color="#764BA2"/></linearGradient><linearGradient id="paint1_linear_logo" x1="25" y1="54.1667" x2="75" y2="54.1667" gradientUnits="userSpaceOnUse"><stop stop-color="#667EEA"/><stop offset="1" stop-color="#764BA2"/></linearGradient><linearGradient id="paint2_linear_logo" x1="25" y1="29.1667" x2="75" y2="29.1667" gradientUnits="userSpaceOnUse"><stop stop-color="#667EEA"/><stop offset="1" stop-color="#764BA2"/></linearGradient></defs></svg>
-                <span class="logo-text">Momentumm</span>
+                <span class="logo-text">Zenith Streak</span>
             </div>
             <div class="user-controls">
+                <button id="shopBtn" class="control-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2-3 8 3 8 3-8-3-8Z"/><path d="M2 10h20"/><path d="M2 14h20"/></svg>
+                </button>
                 <img id="profile-avatar" src="https://placehold.co/40x40/0F0F23/FFFFFF?text=M" alt="User Avatar">
             </div>
         </header>
@@ -648,7 +801,16 @@
             <h1 class="card-title">Time Since Start</h1>
             <div id="dynamicTimer" class="dynamic-timer-container"></div>
         </main>
-
+        <section class="calendar-section">
+            <div class="calendar-header">
+                <button id="prev-month" class="control-btn">&lt;</button>
+                <h3 id="month-year"></h3>
+                <button id="next-month" class="control-btn">&gt;</button>
+            </div>
+            <div class="calendar-grid">
+                <!-- Calendar days will be generated here -->
+            </div>
+        </section>
         <div class="streak-showcase">
             <div class="streak-number" id="streakCount">0</div>
             <div class="streak-text">Day Streak</div>
@@ -719,6 +881,28 @@
             </div>
         </div>
     </div>
+    <div class="shop-modal" id="shopModal">
+        <div class="shop-modal-content">
+            <div class="shop-header">
+                <h3 class="modal-title">Cosmetics Shop</h3>
+                <div class="coin-balance">
+                    <span>✦</span>
+                    <span id="shopCoinBalance">0</span>
+                </div>
+            </div>
+            <div class="shop-tabs">
+                <button class="shop-tab active" data-tab="frames">Frames</button>
+                <button class="shop-tab" data-tab="backgrounds">Backgrounds</button>
+                <button class="shop-tab" data-tab="particles">Particles</button>
+            </div>
+            <div id="shopItemsContainer" class="shop-items">
+                <!-- Shop items will be generated here -->
+            </div>
+            <div class="modal-actions" style="padding: 24px; border-top: 1px solid var(--border);">
+                 <button class="action-btn" id="closeShopBtn">Close</button>
+            </div>
+        </div>
+    </div>
     
     <script type="module">
         // Firebase Imports
@@ -753,6 +937,16 @@
             cancelResetBtn: document.getElementById('cancelResetBtn'),
             confirmResetBtn: document.getElementById('confirmResetBtn'),
             themesGrid: document.querySelector('.themes-grid'),
+            shopBtn: document.getElementById('shopBtn'),
+            shopModal: document.getElementById('shopModal'),
+            closeShopBtn: document.getElementById('closeShopBtn'),
+            shopCoinBalance: document.getElementById('shopCoinBalance'),
+            shopTabs: document.querySelector('.shop-tabs'),
+            shopItemsContainer: document.getElementById('shopItemsContainer'),
+            calendarGrid: document.querySelector('.calendar-grid'),
+            monthYear: document.getElementById('month-year'),
+            prevMonthBtn: document.getElementById('prev-month'),
+            nextMonthBtn: document.getElementById('next-month'),
         };
 
         // --- STATE & CONFIG ---
@@ -761,10 +955,24 @@
             unsubscribe: null, // To store the onSnapshot listener
             particlesArray: [],
             soundSynth: null,
+            currentDate: new Date(),
         };
         
         let userData = {}; // Will be populated from Firestore
-
+        const SHOP_ITEMS = {
+            frames: [
+                { id: 'frame_gold', name: 'Gold', cost: 100, style: 'gold' },
+                { id: 'frame_aurora', name: 'Aurora', cost: 250, style: 'linear-gradient(135deg, #00ff87 0%, #60efff 100%)' },
+            ],
+            backgrounds: [
+                { id: 'bg_sunset', name: 'Sunset', cost: 150, style: 'linear-gradient(135deg, #FF6B6B 0%, #FFE66D 100%)' },
+                { id: 'bg_ocean', name: 'Ocean', cost: 150, style: 'linear-gradient(135deg, #2196F3 0%, #00BCD4 100%)' },
+            ],
+            particles: [
+                { id: 'particle_green', name: 'Green', cost: 50, color: 'rgba(80, 200, 120, 0.4)', lineColor: 'rgba(80, 200, 120, 1)' },
+                { id: 'particle_pink', name: 'Pink', cost: 50, color: 'rgba(231, 60, 126, 0.4)', lineColor: 'rgba(231, 60, 126, 1)'},
+            ]
+        };
         const THEMES = {
             purple: { gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', unlock: 0 },
             ocean: { gradient: 'linear-gradient(135deg, #2196F3 0%, #00BCD4 100%)', unlock: 7 },
@@ -845,6 +1053,10 @@
                     userData = docSnap.data();
                     if (userData.startTime && userData.startTime.toDate) userData.startTime = userData.startTime.toDate().getTime();
                     if (userData.lastCheckIn && userData.lastCheckIn.toDate) userData.lastCheckIn = userData.lastCheckIn.toDate().getTime();
+                    if (!userData.inventory) userData.inventory = [];
+                    if (!userData.checkInHistory) userData.checkInHistory = [];
+
+
                 } else {
                     createNewUser(user);
                 }
@@ -865,6 +1077,8 @@
                 startTime: now,
                 lastCheckIn: null, streak: 0, totalDays: 0, bestStreak: 0,
                 level: 1, coins: 0, unlockedThemes: ['purple'], currentTheme: 'purple',
+                inventory: [], checkInHistory: [],
+                equippedFrame: null, equippedBackground: null, equippedParticles: null,
                 createdAt: serverTimestamp()
             };
             await setDoc(userDocRef, initialData);
@@ -908,6 +1122,8 @@
             
              userData.lastCheckIn = now.getTime();
              userData.totalDays++;
+             userData.checkInHistory.push(now.getTime());
+
             
              if (userData.streak > userData.bestStreak) {
                  userData.bestStreak = userData.streak;
@@ -940,6 +1156,12 @@
              userData.coins = 0;
              userData.unlockedThemes = ['purple'];
              userData.currentTheme = 'purple';
+             userData.inventory = [];
+             userData.checkInHistory = [];
+             userData.equippedFrame = null;
+             userData.equippedBackground = null;
+             userData.equippedParticles = null;
+
              saveUserData();
              hideResetModal();
              showNotification('🌱', 'Fresh Start', 'Your new journey begins now!');
@@ -995,6 +1217,9 @@
             updateThemeDisplay();
             applyTheme(userData.currentTheme);
             if (appState.timerInterval) updateTimer();
+            renderCalendar();
+            applyCosmetics();
+
         }
 
         function toggleProfileCard() {
@@ -1020,7 +1245,39 @@
                 }
             });
          }
+        function renderCalendar() {
+            DOMElements.calendarGrid.innerHTML = '';
+            const date = appState.currentDate;
+            const month = date.getMonth();
+            const year = date.getFullYear();
 
+            DOMElements.monthYear.textContent = `${date.toLocaleString('default', { month: 'long' })} ${year}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            const weekdays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+            weekdays.forEach(day => {
+                const weekdayEl = document.createElement('div');
+                weekdayEl.classList.add('weekday');
+                weekdayEl.textContent = day;
+                DOMElements.calendarGrid.appendChild(weekdayEl);
+            });
+            for (let i = 0; i < firstDay; i++) {
+                DOMElements.calendarGrid.appendChild(document.createElement('div'));
+            }
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.classList.add('calendar-day');
+                dayEl.textContent = i;
+                const dayDate = new Date(year, month, i).toDateString();
+                if (userData.checkInHistory.some(ts => new Date(ts).toDateString() === dayDate)) {
+                    dayEl.classList.add('checked-in');
+                }
+                DOMElements.calendarGrid.appendChild(dayEl);
+            }
+        }
         function updateThemeDisplay() {
             if (!userData.unlockedThemes) return;
             DOMElements.themesGrid.querySelectorAll('.theme-option').forEach(el => {
@@ -1030,7 +1287,21 @@
                 el.classList.toggle('active', themeName === userData.currentTheme);
             });
         }
+        function applyCosmetics() {
+            // Apply frame
+            const frame = SHOP_ITEMS.frames.find(f => f.id === userData.equippedFrame);
+            DOMElements.profileAvatarLarge.style.borderImageSource = frame ? frame.style : 'var(--gradient-primary)';
 
+            // Apply background
+            const bg = SHOP_ITEMS.backgrounds.find(b => b.id === userData.equippedBackground);
+            DOMElements.profileCard.style.background = bg ? bg.style : 'var(--secondary)';
+
+            // Apply particle color
+            const particles = SHOP_ITEMS.particles.find(p => p.id === userData.equippedParticles);
+            document.documentElement.style.setProperty('--particle-color', particles ? particles.color : 'rgba(102, 126, 234, 0.4)');
+            document.documentElement.style.setProperty('--line-color', particles ? particles.lineColor : 'rgba(140, 152, 214, 1)');
+            initParticles(); // Re-initialize particles with new colors
+        }
         function selectTheme(themeName) {
             if (!userData.unlockedThemes.includes(themeName)) {
                 const required = THEMES[themeName].unlock;
@@ -1058,7 +1329,64 @@
 
         function showResetModal() { DOMElements.resetModal.classList.add('show'); }
         function hideResetModal() { DOMElements.resetModal.classList.remove('show'); }
-        
+        function showShopModal() { 
+            DOMElements.shopModal.classList.add('show');
+            DOMElements.shopCoinBalance.textContent = userData.coins || 0;
+            renderShopItems('frames');
+        }
+        function hideShopModal() { DOMElements.shopModal.classList.remove('show'); }
+
+        function renderShopItems(category) {
+            DOMElements.shopItemsContainer.innerHTML = '';
+            SHOP_ITEMS[category].forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.classList.add('shop-item');
+                itemEl.onclick = () => purchaseItem(item, category);
+                
+                const previewEl = document.createElement('div');
+                previewEl.classList.add('item-preview');
+                if (category === 'frames') previewEl.style.borderImageSource = item.style;
+                if (category === 'backgrounds') previewEl.style.background = item.style;
+                if (category === 'particles') previewEl.style.background = item.color;
+
+
+                const nameEl = document.createElement('div');
+                nameEl.classList.add('item-name');
+                nameEl.textContent = item.name;
+
+                const costEl = document.createElement('div');
+                costEl.classList.add('item-cost');
+                costEl.innerHTML = `<span>✦</span> ${item.cost}`;
+
+                itemEl.appendChild(previewEl);
+                itemEl.appendChild(nameEl);
+                itemEl.appendChild(costEl);
+                DOMElements.shopItemsContainer.appendChild(itemEl);
+            });
+        }
+        async function purchaseItem(item, category) {
+            if (userData.inventory.includes(item.id)) {
+                // Equip item
+                if (category === 'frames') userData.equippedFrame = item.id;
+                if (category === 'backgrounds') userData.equippedBackground = item.id;
+                if (category === 'particles') userData.equippedParticles = item.id;
+                await saveUserData();
+                showNotification('✅', 'Item Equipped', `${item.name} has been equipped.`);
+                return;
+            }
+
+            if (userData.coins >= item.cost) {
+                userData.coins -= item.cost;
+                userData.inventory.push(item.id);
+                DOMElements.shopCoinBalance.textContent = userData.coins;
+                await saveUserData();
+                showNotification('🛍️', 'Purchase Successful', `You've unlocked the ${item.name} ${category.slice(0, -1)}!`);
+                renderShopItems(category); // Re-render to show ownership
+            } else {
+                showNotification('❌', 'Not Enough Coins', "Keep up your streak to earn more coins!");
+            }
+        }
+
         // --- SOUND EFFECTS ---
         function initializeAudio() {
             appState.soundSynth = new Tone.PolySynth(Tone.Synth, {
@@ -1099,7 +1427,7 @@
             draw() {
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
-                ctx.fillStyle = 'rgba(102, 126, 234, 0.4)';
+                ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--particle-color');
                 ctx.fill();
             }
             update() {
@@ -1132,7 +1460,7 @@
                         ((appState.particlesArray[a].y - appState.particlesArray[b].y) * (appState.particlesArray[a].y - appState.particlesArray[b].y));
                     if (distance < (DOMElements.particleCanvas.width / 7) * (DOMElements.particleCanvas.height / 7)) {
                         opacityValue = 1 - (distance / 20000);
-                        ctx.strokeStyle = `rgba(140, 152, 214, ${opacityValue})`;
+                        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--line-color').replace('1)', `${opacityValue})`);
                         ctx.lineWidth = 1;
                         ctx.beginPath();
                         ctx.moveTo(appState.particlesArray[a].x, appState.particlesArray[a].y);
@@ -1166,6 +1494,23 @@
             DOMElements.resetBtn.addEventListener('click', showResetModal);
             DOMElements.confirmResetBtn.addEventListener('click', confirmReset);
             DOMElements.cancelResetBtn.addEventListener('click', hideResetModal);
+            DOMElements.shopBtn.addEventListener('click', showShopModal);
+            DOMElements.closeShopBtn.addEventListener('click', hideShopModal);
+             DOMElements.prevMonthBtn.addEventListener('click', () => {
+                appState.currentDate.setMonth(appState.currentDate.getMonth() - 1);
+                renderCalendar();
+            });
+            DOMElements.nextMonthBtn.addEventListener('click', () => {
+                appState.currentDate.setMonth(appState.currentDate.getMonth() + 1);
+                renderCalendar();
+            });
+            DOMElements.shopTabs.addEventListener('click', e => {
+                if (e.target.classList.contains('shop-tab')) {
+                    DOMElements.shopTabs.querySelector('.active').classList.remove('active');
+                    e.target.classList.add('active');
+                    renderShopItems(e.target.dataset.tab);
+                }
+            });
             
             DOMElements.themesGrid.querySelectorAll('.theme-option').forEach(el => {
                 el.addEventListener('click', () => selectTheme(el.dataset.theme));
