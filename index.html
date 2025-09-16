@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Momentum - Daily Habit Tracker</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        :root {
+            --primary: #0F0F23;
+            --secondary: #1A1A2E;
+            --accent: #16213E;
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-gold: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            --gradient-platinum: linear-gradient(135deg, #E5E4E2 0%, #C0C0C0 100%);
+            --gradient-emerald: linear-gradient(135deg, #50C878 0%, #228B22 100%);
+            --text-primary: #FFFFFF;
+            --text-secondary: #A0A3BD;
+            --text-muted: #6B7280;
+            --border: rgba(255, 255, 255, 0.08);
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-strong: rgba(255, 255, 255, 0.1);
+            --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.12);
+            --shadow-strong: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Basic Setup */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .animated-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -3;
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+        }
+        
+        @keyframes gradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            max-width: 428px;
+            margin: 0 auto;
+            padding: 24px 20px;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 12px 16px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FFFFFF 0%, #A0A3BD 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .user-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        #profile-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        #profile-avatar:hover {
+            transform: scale(1.1);
+        }
+        
+        .profile-card {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 350px;
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 24px;
+            z-index: 3000;
+            backdrop-filter: blur(15px);
+            text-align: center;
+        }
+
+        .profile-header {
+            position: relative;
+            margin-bottom: 16px;
+        }
+        
+        .profile-avatar-large {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 3px solid var(--gradient-primary);
+            margin: 0 auto 12px;
+        }
+
+        .profile-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            pointer-events: none;
+        }
+        
+        .profile-name {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 24px 0;
+        }
+        
+        .profile-stat-item .stat-value { font-size: 20px; }
+        .profile-stat-item .stat-label { font-size: 12px; }
+
+        #logoutBtn {
+            width: 100%;
+        }
+
+
+        /* Main Timer Card */
+        .main-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            padding: 32px 28px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-strong);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .main-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--gradient-primary);
+        }
+
+        .card-title {
+            text-align: center;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 24px;
+        }
+
+        .dynamic-timer-container {
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            gap: 24px;
+            margin-bottom: 32px;
+            min-height: 95px; /* Prevents layout shift */
+        }
+
+        .timer-segment {
+            text-align: center;
+        }
+        
+        .timer-segment .timer-number {
+            font-size: 48px;
+            font-weight: 900;
+            line-height: 1;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block;
+        }
+        
+        .timer-segment .timer-label {
+            margin-top: 8px;
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Streak Showcase */
+        .streak-showcase {
+            text-align: center;
+            padding: 32px 20px;
+            background: var(--glass);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .streak-showcase::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at center, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
+            z-index: -1;
+        }
+
+        .streak-number {
+            font-size: 64px;
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 12px;
+            background: var(--gradient-gold);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .streak-text {
+            font-size: 16px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+        
+        /* Action Panel */
+        .action-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .action-btn {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 18px 24px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .action-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--gradient-emerald);
+            border: none;
+            color: white;
+            box-shadow: 0 8px 32px rgba(80, 200, 120, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(80, 200, 120, 0.4);
+        }
+        
+        .btn-primary:disabled {
+            background: var(--glass-strong);
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+            color: var(--text-secondary);
+        }
+
+        .btn-secondary {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #EF4444;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(239, 68, 68, 0.2);
+            transform: translateY(-2px);
+        }
+
+        /* Stats Grid & Themes */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .stat-item {
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .themes-section {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+            background: linear-gradient(135deg, #FFFFFF 0%, #A0A3BD 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .themes-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .theme-option {
+            aspect-ratio: 1;
+            border-radius: 16px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-option.active {
+            border-color: var(--text-primary);
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+            transform: scale(1.05);
+        }
+
+        .theme-option.locked {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        
+        .theme-option.locked .lock-icon {
+            display: block;
+        }
+
+        .lock-icon {
+            display: none;
+            width: 24px;
+            height: 24px;
+            color: white;
+        }
+
+        .theme-purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .theme-ocean { background: linear-gradient(135deg, #2196F3 0%, #00BCD4 100%); }
+        .theme-sunset { background: linear-gradient(135deg, #FF6B6B 0%, #FFE66D 100%); }
+        .theme-forest { background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%); }
+        .theme-space { background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%); }
+        .theme-aurora { background: linear-gradient(135deg, #00ff87 0%, #60efff 100%); }
+
+        /* Notification & Modals */
+        .notification, .reset-modal-content {
+            background: var(--glass-strong);
+            backdrop-filter: blur(30px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px 28px;
+            text-align: center;
+            box-shadow: var(--shadow-strong);
+            max-width: 320px;
+            width: 90%;
+        }
+
+        .notification {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            z-index: 1000;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .notification.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .notification-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .notification-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .notification-text {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        
+        #auth-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            z-index: 9998;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #auth-modal {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .auth-title {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #FFFFFF 0%, #A0A3BD 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .auth-tagline {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 32px;
+            max-width: 300px;
+            line-height: 1.5;
+        }
+        
+        #google-signin {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--glass-strong);
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        #google-signin:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .reset-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .reset-modal.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .reset-modal-content {
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .reset-modal.show .reset-modal-content {
+            transform: scale(1);
+        }
+        
+        .modal-icon svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 16px;
+            color: #EF4444;
+        }
+
+        .modal-title { font-size: 20px; font-weight: 700; margin-bottom: 12px; }
+        .modal-text { color: var(--text-secondary); margin-bottom: 24px; line-height: 1.5; }
+        .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        @media (max-width: 480px) {
+            .container { padding: 20px 16px; }
+            .timer-number { font-size: 32px; }
+            .streak-number { font-size: 56px; }
+            .main-card { padding: 28px 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-background"></div>
+    
+    <div id="auth-overlay">
+        <div id="auth-modal">
+            <h2 class="auth-title">Welcome to Momentum</h2>
+            <p class="auth-tagline">Build lasting habits, one day at a time. Sign in to start your journey.</p>
+             <button id="google-signin">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="#4285F4" d="M21.35,11.1H12.18V13.83H18.69C18.36,17.64 15.19,19.27 12.19,19.27C8.36,19.27 5,16.25 5,12C5,7.9 8.2,4.73 12.19,4.73C14.04,4.73 15.3,5.5 15.9,6.03L18.04,3.91C16.32,2.43 14.04,1.7 12.19,1.7C6.92,1.7 2.73,6.1 2.73,12C2.73,17.9 6.92,22.3 12.19,22.3C17.6,22.3 21.5,18.33 21.5,12.33C21.5,11.76 21.43,11.43 21.35,11.1Z"/></svg>
+                Sign in with Google
+            </button>
+        </div>
+    </div>
+
+    <div class="container" style="display: none;">
+        <header class="header">
+            <div class="logo">
+                <svg class="logo-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M25 83.3333C25 83.3333 33.3333 75 50 75C66.6667 75 75 83.3333 75 83.3333" stroke="url(#paint0_linear_logo)" stroke-width="10" stroke-linecap="round"/><path d="M25 58.3333C25 58.3333 33.3333 50 50 50C66.6667 50 75 58.3333 75 58.3333" stroke="url(#paint1_linear_logo)" stroke-width="10" stroke-linecap="round"/><path d="M25 33.3333C25 33.3333 33.3333 25 50 25C66.6667 25 75 33.3333 75 33.3333" stroke="url(#paint2_linear_logo)" stroke-width="10" stroke-linecap="round"/><defs><linearGradient id="paint0_linear_logo" x1="25" y1="79.1667" x2="75" y2="79.1667" gradientUnits="userSpaceOnUse"><stop stop-color="#667EEA"/><stop offset="1" stop-color="#764BA2"/></linearGradient><linearGradient id="paint1_linear_logo" x1="25" y1="54.1667" x2="75" y2="54.1667" gradientUnits="userSpaceOnUse"><stop stop-color="#667EEA"/><stop offset="1" stop-color="#764BA2"/></linearGradient><linearGradient id="paint2_linear_logo" x1="25" y1="29.1667" x2="75" y2="29.1667" gradientUnits="userSpaceOnUse"><stop stop-color="#667EEA"/><stop offset="1" stop-color="#764BA2"/></linearGradient></defs></svg>
+                <span class="logo-text">Momentum</span>
+            </div>
+            <div class="user-controls">
+                <img id="profile-avatar" src="https://placehold.co/40x40/0F0F23/FFFFFF?text=M" alt="User Avatar">
+            </div>
+        </header>
+
+        <main class="main-card">
+            <h1 class="card-title">Time Since Start</h1>
+            <div id="dynamicTimer" class="dynamic-timer-container"></div>
+        </main>
+
+        <div class="streak-showcase">
+            <div class="streak-number" id="streakCount">0</div>
+            <div class="streak-text">Day Streak</div>
+        </div>
+
+        <div class="action-panel">
+            <button class="action-btn btn-primary" id="checkInBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+                <span>Check In</span>
+            </button>
+            <button class="action-btn btn-secondary" id="resetBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M21 21v-5h-5"></path></svg>
+                <span>Reset</span>
+            </button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-item"><div class="stat-value" id="totalDays">0</div><div class="stat-label">Total Days</div></div>
+            <div class="stat-item"><div class="stat-value" id="bestStreak">0</div><div class="stat-label">Best Streak</div></div>
+            <div class="stat-item"><div class="stat-value" id="levelStat">1</div><div class="stat-label">Level</div></div>
+        </div>
+
+        <section class="themes-section">
+            <h2 class="section-title">Premium Themes</h2>
+            <div class="themes-grid">
+                <div class="theme-option theme-purple" data-theme="purple"><div class="lock-icon"></div></div>
+                <div class="theme-option theme-ocean" data-theme="ocean"><div class="lock-icon"></div></div>
+                <div class="theme-option theme-sunset" data-theme="sunset"><div class="lock-icon"></div></div>
+                <div class="theme-option theme-forest" data-theme="forest"><div class="lock-icon"></div></div>
+                <div class="theme-option theme-space" data-theme="space"><div class="lock-icon"></div></div>
+                <div class="theme-option theme-aurora" data-theme="aurora"><div class="lock-icon"></div></div>
+            </div>
+        </section>
+    </div>
+    
+    <div id="profile-card" class="profile-card">
+        <div class="profile-header">
+            <img id="profile-avatar-large" class="profile-avatar-large" src="https://placehold.co/90x90/1A1A2E/FFFFFF?text=M" alt="User Avatar">
+        </div>
+        <h3 id="profile-name" class="profile-name">User Name</h3>
+        <div class="profile-stats">
+            <div class="profile-stat-item stat-item">
+                <div id="profile-level" class="stat-value">1</div>
+                <div class="stat-label">Level</div>
+            </div>
+            <div class="profile-stat-item stat-item">
+                <div id="profile-coins" class="stat-value">0</div>
+                <div class="stat-label">Coins</div>
+            </div>
+        </div>
+        <button id="logoutBtn" class="action-btn btn-secondary">Logout</button>
+    </div>
+
+    <div class="notification" id="notification">
+        <span class="notification-icon" id="notificationIcon">🎉</span>
+        <h3 class="notification-title" id="notificationTitle">Achievement!</h3>
+        <p class="notification-text" id="notificationText">You're doing great!</p>
+    </div>
+
+    <div class="reset-modal" id="resetModal">
+        <div class="reset-modal-content">
+            <div class="modal-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div>
+            <h3 class="modal-title">Reset Progress</h3>
+            <p class="modal-text">This will permanently delete all your progress. This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="action-btn" id="cancelResetBtn">Cancel</button>
+                <button class="action-btn btn-secondary" id="confirmResetBtn">Reset All</button>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        // Firebase Imports
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- DOM ELEMENTS ---
+        const DOMElements = {
+            authOverlay: document.getElementById('auth-overlay'),
+            appContainer: document.querySelector('.container'),
+            googleSignInBtn: document.getElementById('google-signin'),
+            profileAvatar: document.getElementById('profile-avatar'),
+            profileCard: document.getElementById('profile-card'),
+            profileAvatarLarge: document.getElementById('profile-avatar-large'),
+            profileName: document.getElementById('profile-name'),
+            profileLevel: document.getElementById('profile-level'),
+            profileCoins: document.getElementById('profile-coins'),
+            logoutBtn: document.getElementById('logoutBtn'),
+            streakCount: document.getElementById('streakCount'),
+            totalDays: document.getElementById('totalDays'),
+            bestStreak: document.getElementById('bestStreak'),
+            levelStat: document.getElementById('levelStat'),
+            checkInBtn: document.getElementById('checkInBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            notification: document.getElementById('notification'),
+            notificationIcon: document.getElementById('notificationIcon'),
+            notificationTitle: document.getElementById('notificationTitle'),
+            notificationText: document.getElementById('notificationText'),
+            resetModal: document.getElementById('resetModal'),
+            cancelResetBtn: document.getElementById('cancelResetBtn'),
+            confirmResetBtn: document.getElementById('confirmResetBtn'),
+            themesGrid: document.querySelector('.themes-grid'),
+        };
+
+        // --- STATE & CONFIG ---
+        let appState = {
+            timerInterval: null,
+            unsubscribe: null, // To store the onSnapshot listener
+        };
+        
+        let userData = {}; // Will be populated from Firestore
+
+        const THEMES = {
+            purple: { gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', unlock: 0 },
+            ocean: { gradient: 'linear-gradient(135deg, #2196F3 0%, #00BCD4 100%)', unlock: 7 },
+            sunset: { gradient: 'linear-gradient(135deg, #FF6B6B 0%, #FFE66D 100%)', unlock: 15 },
+            forest: { gradient: 'linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%)', unlock: 30 },
+            space: { gradient: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%)', unlock: 50 },
+            aurora: { gradient: 'linear-gradient(135deg, #00ff87 0%, #60efff 100%)', unlock: 100 }
+        };
+
+        // --- FIREBASE SETUP ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyCJEH0HgkdcJx-vxyJYse1IbMxDk-fcBO4",
+            authDomain: "mommentum-d3ea1.firebaseapp.com",
+            projectId: "mommentum-d3ea1",
+            storageBucket: "mommentum-d3ea1.firebasestorage.app",
+            messagingSenderId: "351095512781",
+            appId: "1:351095512781:web:99fb2e32145bcf58951384"
+        };
+        let db, auth;
+
+        async function initializeFirebase() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                handleAuthentication();
+            } catch (error) {
+                console.error("Firebase initialization failed:", error);
+            }
+        }
+        
+        function handleAuthentication() {
+            onAuthStateChanged(auth, user => {
+                if (user) {
+                    DOMElements.authOverlay.style.display = 'none';
+                    DOMElements.appContainer.style.display = 'block';
+                    setupDataListener(user);
+                } else {
+                    DOMElements.authOverlay.style.display = 'flex';
+                    DOMElements.appContainer.style.display = 'none';
+                    if (appState.unsubscribe) appState.unsubscribe();
+                }
+            });
+        }
+        
+        async function signInWithGoogle() {
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                console.error("Google Sign-In failed:", error);
+                showNotification('❌', 'Login Failed', 'Could not sign in with Google. Please try again.');
+            }
+        }
+        
+        async function logOut() {
+            try {
+                await signOut(auth);
+                userData = {};
+                DOMElements.profileCard.style.display = 'none';
+            } catch (error) {
+                console.error("Sign out failed:", error);
+            }
+        }
+
+        // --- DATA HANDLING ---
+        function getUserDocRef(userId) {
+             return doc(db, `users/${userId}`);
+        }
+        
+        async function setupDataListener(user) {
+            const userDocRef = getUserDocRef(user.uid);
+
+            if (appState.unsubscribe) appState.unsubscribe();
+
+            appState.unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+                if (docSnap.exists()) {
+                    userData = docSnap.data();
+                    if (userData.startTime && userData.startTime.toDate) userData.startTime = userData.startTime.toDate().getTime();
+                    if (userData.lastCheckIn && userData.lastCheckIn.toDate) userData.lastCheckIn = userData.lastCheckIn.toDate().getTime();
+                } else {
+                    createNewUser(user);
+                }
+                updateAllDisplays();
+            }, (error) => {
+                console.error("Error listening to document:", error);
+            });
+        }
+
+        async function createNewUser(user) {
+             const userDocRef = getUserDocRef(user.uid);
+             const now = new Date();
+             const initialData = {
+                uid: user.uid,
+                displayName: user.displayName,
+                photoURL: user.photoURL,
+                email: user.email,
+                startTime: now,
+                lastCheckIn: null, streak: 0, totalDays: 0, bestStreak: 0,
+                level: 1, coins: 0, unlockedThemes: ['purple'], currentTheme: 'purple',
+                createdAt: serverTimestamp()
+            };
+            await setDoc(userDocRef, initialData);
+        }
+
+        async function saveUserData() {
+            if (!auth.currentUser) return;
+            const userDocRef = getUserDocRef(auth.currentUser.uid);
+            const dataToSave = { ...userData };
+            if(dataToSave.startTime) dataToSave.startTime = new Date(dataToSave.startTime);
+            if(dataToSave.lastCheckIn) dataToSave.lastCheckIn = new Date(dataToSave.lastCheckIn);
+            
+            try {
+                await setDoc(userDocRef, dataToSave, { merge: true });
+            } catch (error) {
+                console.error("Error saving user data:", error);
+            }
+        }
+        
+        // --- CORE LOGIC & UI UPDATES ---
+        function checkIn() {
+             const now = new Date();
+             const today = now.toDateString();
+             const lastCheckInDate = userData.lastCheckIn ? new Date(userData.lastCheckIn).toDateString() : null;
+
+             if (lastCheckInDate === today) {
+                 showNotification('⏰', 'Already Checked In', 'Come back tomorrow to continue your journey!');
+                 return;
+             }
+            
+             const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000).toDateString();
+             if (lastCheckInDate === yesterday) {
+                 userData.streak++;
+             } else {
+                 userData.streak = 1;
+                  if(lastCheckInDate) {
+                     showNotification('🔄', 'Streak Reset', 'Consistency is key. You can do it!');
+                 }
+             }
+            
+             userData.lastCheckIn = now.getTime();
+             userData.totalDays++;
+            
+             if (userData.streak > userData.bestStreak) {
+                 userData.bestStreak = userData.streak;
+                 showNotification('🏆', 'New Record!', `${userData.streak} days is your new personal best!`);
+             }
+
+             const coinsEarned = 5 + Math.floor(userData.streak / 2);
+             userData.coins += coinsEarned;
+            
+             const newLevel = Math.floor(userData.totalDays / 5) + 1;
+             if (newLevel > userData.level) {
+                 userData.level = newLevel;
+                 showNotification('⭐', `Level Up!`, `You've reached Level ${newLevel}. Keep it up!`);
+             } else {
+                 showNotification('🔥', `Day ${userData.streak}!`, `+${coinsEarned} coins. Great work today!`);
+             }
+            
+             checkForThemeUnlocks();
+             saveUserData();
+        }
+
+        function confirmReset() {
+             const now = new Date();
+             userData.startTime = now.getTime();
+             userData.lastCheckIn = null;
+             userData.streak = 0;
+             userData.totalDays = 0;
+             userData.bestStreak = 0;
+             userData.level = 1;
+             userData.coins = 0;
+             saveUserData();
+             hideResetModal();
+             showNotification('🌱', 'Fresh Start', 'Your new journey begins now!');
+        }
+        
+        function formatTimeUnit(value, unit) {
+            const label = value === 1 ? unit : `${unit}s`;
+            return `<div class="timer-segment"><span class="timer-number">${value}</span><span class="timer-label">${label}</span></div>`;
+        }
+        
+        function updateTimer() {
+            if (!userData.startTime) return;
+            const diff = Date.now() - userData.startTime;
+            const totalSeconds = Math.floor(diff / 1000);
+            const d = Math.floor(totalSeconds / (3600 * 24));
+            const h = Math.floor((totalSeconds % (3600 * 24)) / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
+            
+            const timerContainer = document.getElementById('dynamicTimer');
+            if(!timerContainer) return;
+
+            let html = '';
+            if (d > 0) {
+                html += formatTimeUnit(d, 'day');
+                if (h > 0) html += formatTimeUnit(h, 'hour');
+            } else if (h > 0) {
+                html += formatTimeUnit(h, 'hour');
+                if (m > 0) html += formatTimeUnit(m, 'minute');
+            } else if (m > 0) {
+                html += formatTimeUnit(m, 'minute');
+                html += formatTimeUnit(s, 'second');
+            } else {
+                html += formatTimeUnit(s, 'second');
+            }
+            if (timerContainer.innerHTML !== html) timerContainer.innerHTML = html;
+        }
+        
+        function updateAllDisplays() {
+            if (!userData || !auth.currentUser) return;
+            
+            DOMElements.profileAvatar.src = userData.photoURL || 'https://placehold.co/40x40/0F0F23/FFFFFF?text=M';
+            DOMElements.streakCount.textContent = userData.streak || 0;
+            DOMElements.totalDays.textContent = userData.totalDays || 0;
+            DOMElements.bestStreak.textContent = userData.bestStreak || 0;
+            DOMElements.levelStat.textContent = userData.level || 1;
+            
+            const lastCheckInDate = userData.lastCheckIn ? new Date(userData.lastCheckIn).toDateString() : null;
+            const isCheckedInToday = lastCheckInDate === new Date().toDateString();
+            DOMElements.checkInBtn.disabled = isCheckedInToday;
+            DOMElements.checkInBtn.querySelector('span').textContent = isCheckedInToday ? 'Checked In' : 'Check In';
+            
+            updateThemeDisplay();
+            applyTheme(userData.currentTheme);
+            updateTimer();
+        }
+
+        function toggleProfileCard() {
+            const isVisible = DOMElements.profileCard.style.display === 'block';
+            if (isVisible) {
+                DOMElements.profileCard.style.display = 'none';
+            } else {
+                DOMElements.profileName.textContent = userData.displayName;
+                DOMElements.profileAvatarLarge.src = (userData.photoURL ? userData.photoURL.replace('s96-c', 's200-c') : '') || 'https://placehold.co/90x90/1A1A2E/FFFFFF?text=M'; // Higher res
+                DOMElements.profileLevel.textContent = userData.level || 1;
+                DOMElements.profileCoins.textContent = userData.coins || 0;
+                DOMElements.profileCard.style.display = 'block';
+            }
+        }
+        
+        function checkForThemeUnlocks() {
+            Object.keys(THEMES).forEach(themeName => {
+                const theme = THEMES[themeName];
+                if (userData.streak >= theme.unlock && !userData.unlockedThemes.includes(themeName)) {
+                    userData.unlockedThemes.push(themeName);
+                    showNotification('🎨', 'Theme Unlocked!', `The '${themeName}' theme is now available!`);
+                }
+            });
+         }
+
+        function updateThemeDisplay() {
+            if (!userData.unlockedThemes) return;
+            DOMElements.themesGrid.querySelectorAll('.theme-option').forEach(el => {
+                const themeName = el.dataset.theme;
+                const isUnlocked = userData.unlockedThemes.includes(themeName);
+                el.classList.toggle('locked', !isUnlocked);
+                el.classList.toggle('active', themeName === userData.currentTheme);
+            });
+        }
+
+        function selectTheme(themeName) {
+            if (!userData.unlockedThemes.includes(themeName)) {
+                const required = THEMES[themeName].unlock;
+                showNotification('🔒', 'Theme Locked', `Reach a ${required}-day streak to unlock this!`);
+                return;
+            }
+            userData.currentTheme = themeName;
+            saveUserData();
+        }
+
+        function applyTheme(themeName) {
+            if (!themeName || !THEMES[themeName]) return;
+            const theme = THEMES[themeName];
+            document.documentElement.style.setProperty('--gradient-primary', theme.gradient);
+        }
+
+        function showNotification(icon, title, text) {
+            DOMElements.notificationIcon.textContent = icon;
+            DOMElements.notificationTitle.textContent = title;
+            DOMElements.notificationText.textContent = text;
+            DOMElements.notification.classList.add('show');
+            setTimeout(() => DOMElements.notification.classList.remove('show'), 4000);
+        }
+
+        function showResetModal() { DOMElements.resetModal.classList.add('show'); }
+        function hideResetModal() { DOMElements.resetModal.classList.remove('show'); }
+        
+        // --- EVENT LISTENERS ---
+        function setupEventListeners() {
+            DOMElements.googleSignInBtn.addEventListener('click', signInWithGoogle);
+            DOMElements.logoutBtn.addEventListener('click', logOut);
+            DOMElements.profileAvatar.addEventListener('click', toggleProfileCard);
+            DOMElements.checkInBtn.addEventListener('click', checkIn);
+            DOMElements.resetBtn.addEventListener('click', showResetModal);
+            DOMElements.confirmResetBtn.addEventListener('click', confirmReset);
+            DOMElements.cancelResetBtn.addEventListener('click', hideResetModal);
+            
+            DOMElements.themesGrid.querySelectorAll('.theme-option').forEach(el => {
+                el.addEventListener('click', () => selectTheme(el.dataset.theme));
+            });
+        }
+
+        // --- APP INITIALIZATION ---
+        function initApp() {
+            setupEventListeners();
+            initializeFirebase();
+            appState.timerInterval = setInterval(updateTimer, 1000);
+        }
+        
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
+
