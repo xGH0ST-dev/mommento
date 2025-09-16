@@ -738,8 +738,14 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: transform 0.3s;
+            transition: transform 0.3s, border-color 0.3s;
         }
+        
+        .shop-item .item-preview.equipped {
+            border-color: var(--text-primary);
+            box-shadow: 0 0 12px rgba(255,255,255,0.5);
+        }
+
 
         .shop-item:hover .item-preview {
             transform: scale(1.05);
@@ -1019,6 +1025,7 @@
         }
         
         async function signInWithGoogle() {
+            await Tone.start(); // Ensure audio context is ready for interaction
             const provider = new GoogleAuthProvider();
             try {
                 await signInWithPopup(auth, provider);
@@ -1049,17 +1056,35 @@
             if (appState.unsubscribe) appState.unsubscribe();
 
             appState.unsubscribe = onSnapshot(userDocRef, (docSnap) => {
+                let needsSave = false;
                 if (docSnap.exists()) {
                     userData = docSnap.data();
-                    if (userData.startTime && userData.startTime.toDate) userData.startTime = userData.startTime.toDate().getTime();
-                    if (userData.lastCheckIn && userData.lastCheckIn.toDate) userData.lastCheckIn = userData.lastCheckIn.toDate().getTime();
+                    
+                    // BUG FIX: Handle missing startTime for users with old data schemas
+                    if (!userData.startTime) {
+                        userData.startTime = new Date().getTime();
+                        needsSave = true; 
+                    } else if (userData.startTime.toDate) {
+                        userData.startTime = userData.startTime.toDate().getTime();
+                    }
+                    
+                    if (userData.lastCheckIn && userData.lastCheckIn.toDate) {
+                        userData.lastCheckIn = userData.lastCheckIn.toDate().getTime();
+                    }
+
                     if (!userData.inventory) userData.inventory = [];
                     if (!userData.checkInHistory) userData.checkInHistory = [];
 
 
                 } else {
                     createNewUser(user);
+                    return; 
                 }
+                
+                if(needsSave) {
+                    saveUserData();
+                }
+
                 updateAllDisplays();
             }, (error) => {
                 console.error("Error listening to document:", error);
@@ -1088,8 +1113,12 @@
             if (!auth.currentUser) return;
             const userDocRef = getUserDocRef(auth.currentUser.uid);
             const dataToSave = { ...userData };
-            if(dataToSave.startTime) dataToSave.startTime = new Date(dataToSave.startTime);
-            if(dataToSave.lastCheckIn) dataToSave.lastCheckIn = new Date(dataToSave.lastCheckIn);
+            if(dataToSave.startTime && typeof dataToSave.startTime === 'number') {
+                dataToSave.startTime = new Date(dataToSave.startTime);
+            }
+            if(dataToSave.lastCheckIn && typeof dataToSave.lastCheckIn === 'number') {
+                dataToSave.lastCheckIn = new Date(dataToSave.lastCheckIn);
+            }
             
             try {
                 await setDoc(userDocRef, dataToSave, { merge: true });
@@ -1122,8 +1151,9 @@
             
              userData.lastCheckIn = now.getTime();
              userData.totalDays++;
-             userData.checkInHistory.push(now.getTime());
-
+             if (!userData.checkInHistory.some(ts => new Date(ts).toDateString() === today)) {
+                userData.checkInHistory.push(now.getTime());
+             }
             
              if (userData.streak > userData.bestStreak) {
                  userData.bestStreak = userData.streak;
@@ -1216,7 +1246,7 @@
             
             updateThemeDisplay();
             applyTheme(userData.currentTheme);
-            if (appState.timerInterval) updateTimer();
+            updateTimer();
             renderCalendar();
             applyCosmetics();
 
@@ -1272,7 +1302,7 @@
                 dayEl.classList.add('calendar-day');
                 dayEl.textContent = i;
                 const dayDate = new Date(year, month, i).toDateString();
-                if (userData.checkInHistory.some(ts => new Date(ts).toDateString() === dayDate)) {
+                if (userData.checkInHistory && userData.checkInHistory.some(ts => new Date(ts).toDateString() === dayDate)) {
                     dayEl.classList.add('checked-in');
                 }
                 DOMElements.calendarGrid.appendChild(dayEl);
@@ -1345,6 +1375,16 @@
                 
                 const previewEl = document.createElement('div');
                 previewEl.classList.add('item-preview');
+
+                const isOwned = userData.inventory.includes(item.id);
+                const isEquipped = (category === 'frames' && userData.equippedFrame === item.id) ||
+                                (category === 'backgrounds' && userData.equippedBackground === item.id) ||
+                                (category === 'particles' && userData.equippedParticles === item.id);
+
+                if (isEquipped) {
+                    previewEl.classList.add('equipped');
+                }
+
                 if (category === 'frames') previewEl.style.borderImageSource = item.style;
                 if (category === 'backgrounds') previewEl.style.background = item.style;
                 if (category === 'particles') previewEl.style.background = item.color;
@@ -1356,7 +1396,14 @@
 
                 const costEl = document.createElement('div');
                 costEl.classList.add('item-cost');
-                costEl.innerHTML = `<span>✦</span> ${item.cost}`;
+                
+                if (isEquipped) {
+                    costEl.innerHTML = `<span>Equipped</span>`;
+                } else if (isOwned) {
+                    costEl.innerHTML = `<span>Owned</span>`;
+                } else {
+                    costEl.innerHTML = `<span>✦</span> ${item.cost}`;
+                }
 
                 itemEl.appendChild(previewEl);
                 itemEl.appendChild(nameEl);
@@ -1372,6 +1419,7 @@
                 if (category === 'particles') userData.equippedParticles = item.id;
                 await saveUserData();
                 showNotification('✅', 'Item Equipped', `${item.name} has been equipped.`);
+                renderShopItems(DOMElements.shopTabs.querySelector('.active').dataset.tab);
                 return;
             }
 
@@ -1380,8 +1428,8 @@
                 userData.inventory.push(item.id);
                 DOMElements.shopCoinBalance.textContent = userData.coins;
                 await saveUserData();
-                showNotification('🛍️', 'Purchase Successful', `You've unlocked the ${item.name} ${category.slice(0, -1)}!`);
-                renderShopItems(category); // Re-render to show ownership
+                showNotification('🛍️', 'Purchase Successful', `You've unlocked the ${item.name}!`);
+                renderShopItems(DOMElements.shopTabs.querySelector('.active').dataset.tab); // Re-render to show ownership
             } else {
                 showNotification('❌', 'Not Enough Coins', "Keep up your streak to earn more coins!");
             }
@@ -1389,14 +1437,19 @@
 
         // --- SOUND EFFECTS ---
         function initializeAudio() {
-            appState.soundSynth = new Tone.PolySynth(Tone.Synth, {
-                oscillator: { type: "sine" },
-                envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 },
-            }).toDestination();
+            // Check if Tone.js is available
+            if(typeof Tone !== 'undefined') {
+                appState.soundSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "sine" },
+                    envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 },
+                }).toDestination();
+            } else {
+                console.warn("Tone.js not loaded. Sound effects will be disabled.");
+            }
         }
         
         function playSound(type) {
-             if (!appState.soundSynth) return;
+             if (!appState.soundSynth || Tone.context.state !== 'running') return;
              try {
                 const now = Tone.now();
                 if (type === 'checkIn') {
@@ -1460,7 +1513,14 @@
                         ((appState.particlesArray[a].y - appState.particlesArray[b].y) * (appState.particlesArray[a].y - appState.particlesArray[b].y));
                     if (distance < (DOMElements.particleCanvas.width / 7) * (DOMElements.particleCanvas.height / 7)) {
                         opacityValue = 1 - (distance / 20000);
-                        ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--line-color').replace('1)', `${opacityValue})`);
+                        let lineColor = getComputedStyle(document.documentElement).getPropertyValue('--line-color').trim();
+                        // Handle both rgba and hex if needed, for now assuming rgba or color name that can be parsed
+                        if (lineColor.startsWith('rgba')) {
+                            ctx.strokeStyle = lineColor.replace(/,\s*\d(\.\d+)?\)/, `, ${opacityValue})`);
+                        } else {
+                            ctx.strokeStyle = `rgba(140, 152, 214, ${opacityValue})`; // Fallback
+                        }
+
                         ctx.lineWidth = 1;
                         ctx.beginPath();
                         ctx.moveTo(appState.particlesArray[a].x, appState.particlesArray[a].y);
